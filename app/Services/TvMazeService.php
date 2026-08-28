@@ -55,7 +55,9 @@ class TvMazeService
                         'tvmaze_id' => $episodeData['id'],
                         'episode_number' => $episodeData['number'],
                         'name' => $episodeData['name'],
-                        'air_date' => $episodeData['airdate'],
+                        'air_date' => !empty($episodeData['airdate'])
+                            ? $episodeData['airdate']
+                            : null,
                     ]);
 
                     if (!$isNewSeason) {
