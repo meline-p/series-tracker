@@ -11,6 +11,7 @@ class Series extends Model
         'tvmaze_id',
         'name',
         'image_url',
+        'language',
     ];
 
     public function seasons(): HasMany
@@ -53,5 +54,40 @@ class Series extends Model
             'up_to_date' => 1,
             'completed' => 2,
         };
+    }
+
+    public function getFirstEpisodeAttribute()
+    {
+        return $this->seasons
+            ->sortBy('season_number')
+            ->flatMap(fn($season) => $season->episodes->sortBy('episode_number'))
+            ->filter(fn($episode) => $episode->air_date)
+            ->first();
+    }
+
+    public function getLastEpisodeAttribute()
+    {
+        return $this->seasons
+            ->sortByDesc('season_number')
+            ->flatMap(fn($season) => $season->episodes->sortByDesc('episode_number'))
+            ->filter(fn($episode) => $episode->air_date)
+            ->first();
+    }
+
+    public function getDateRangeAttribute(): ?string
+    {
+        $firstEpisode = $this->firstEpisode;
+        $lastEpisode = $this->lastEpisode;
+
+        if (!$firstEpisode || !$lastEpisode) {
+            return null;
+        }
+
+        $firstYear = $firstEpisode->air_date->format('Y');
+        $lastYear = $lastEpisode->air_date->format('Y');
+
+        return $firstYear === $lastYear
+            ? $firstYear
+            : "{$firstYear}-{$lastYear}";
     }
 }

@@ -12,6 +12,20 @@ class TvMazeService
         $newSeasons = [];
         $newEpisodes = [];
 
+        // Informations générales de la série
+        $showResponse = Http::get(
+            "https://api.tvmaze.com/shows/{$series->tvmaze_id}"
+        );
+
+        $show = $showResponse->json();
+
+        if (!empty($show['language'])) {
+            $series->update([
+                'language' => $show['language'],
+            ]);
+        }
+
+        // Récupération des saisons
         $response = Http::get(
             "https://api.tvmaze.com/shows/{$series->tvmaze_id}/seasons"
         );

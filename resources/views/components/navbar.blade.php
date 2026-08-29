@@ -15,6 +15,26 @@
                 Rechercher
             </a>
 
+            <form action="{{ route('database.export') }}" method="POST">
+                @csrf
+
+                <button type="submit"
+                    class="text-sm font-medium text-gray-600 transition hover:text-gray-900 cursor-pointer">
+                    💾 Exporter
+                </button>
+            </form>
+
+            <form action="{{ route('database.import') }}" method="POST"
+                onsubmit="return confirm('⚠️ La base de données actuelle sera remplacée par la sauvegarde. Continuer ?');">
+
+                @csrf
+
+                <button type="submit"
+                    class="text-sm font-medium text-gray-600 transition hover:text-gray-900 cursor-pointer">
+                    ↩ Importer
+                </button>
+            </form>
+
         </div>
 
     </div>

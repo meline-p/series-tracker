@@ -86,15 +86,80 @@
     {{-- Mes séries --}}
     <section class="mt-10">
 
-        <h2 class="mb-6 text-2xl font-bold">
-            Mes séries
-        </h2>
+        <div class="mb-6 flex items-center justify-between">
+
+            <h2 class="text-2xl font-bold">
+                Mes séries
+            </h2>
+
+
+            <div class="flex flex-wrap gap-3">
+
+                {{-- Filtre langue --}}
+                <form action="{{ route('series.index') }}" method="GET">
+
+                    @if (request('status'))
+                        <input type="hidden" name="status" value="{{ request('status') }}">
+                    @endif
+
+                    <select name="language" onchange="this.form.submit()"
+                        class="rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-200">
+
+                        <option value="">
+                            Toutes les langues
+                        </option>
+
+                        @foreach ($languages as $language)
+                            <option value="{{ $language }}" {{ request('language') === $language ? 'selected' : '' }}>
+                                {{ ucfirst($language) }}
+                            </option>
+                        @endforeach
+
+                    </select>
+
+                </form>
+
+
+                {{-- Filtre statut --}}
+                <form action="{{ route('series.index') }}" method="GET">
+
+                    @if (request('language'))
+                        <input type="hidden" name="language" value="{{ request('language') }}">
+                    @endif
+
+                    <select name="status" onchange="this.form.submit()"
+                        class="rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-200">
+
+                        <option value="">
+                            Tous les statuts
+                        </option>
+
+                        <option value="watching" {{ request('status') === 'watching' ? 'selected' : '' }}>
+                            En cours
+                        </option>
+
+                        <option value="up_to_date" {{ request('status') === 'up_to_date' ? 'selected' : '' }}>
+                            À jour
+                        </option>
+
+                        <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>
+                            Terminées
+                        </option>
+
+                    </select>
+
+                </form>
+
+            </div>
+
+        </div>
+
 
         @if ($series->isEmpty())
             <div class="rounded-xl bg-white p-10 text-center shadow-sm">
 
                 <p class="text-gray-500">
-                    Tu ne suis encore aucune série.
+                    {{ request('language') ? 'Aucune série trouvée dans cette langue.' : 'Tu ne suis encore aucune série.' }}
                 </p>
 
             </div>
@@ -115,6 +180,12 @@
 
                             <h3 class="text-xl font-bold">
                                 {{ $mySeries->name }}
+
+                                @if ($mySeries->date_range)
+                                    <span class="font-normal text-gray-400 text-sm">
+                                        ({{ $mySeries->date_range }})
+                                    </span>
+                                @endif
                             </h3>
 
 
@@ -146,10 +217,12 @@
 
 
                             <a href="{{ route('series.show', $mySeries) }}" class="mt-auto pt-5">
+
                                 <span
                                     class="inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-700">
                                     Voir la série
                                 </span>
+
                             </a>
 
                         </div>

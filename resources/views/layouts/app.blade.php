@@ -15,7 +15,21 @@
     <x-navbar />
 
     <main class="mx-auto max-w-6xl px-6 py-10">
+
+        @if (session('success'))
+            <div class="mb-8 rounded-xl bg-green-50 px-5 py-4 text-sm font-medium text-green-700">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="mb-8 rounded-xl bg-red-50 px-5 py-4 text-sm font-medium text-red-700">
+                {{ session('error') }}
+            </div>
+        @endif
+
         @yield('content')
+
     </main>
 
 </body>
