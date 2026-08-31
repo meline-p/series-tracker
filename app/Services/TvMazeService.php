@@ -17,12 +17,14 @@ class TvMazeService
             "https://api.tvmaze.com/shows/{$series->tvmaze_id}"
         );
 
-        $show = $showResponse->json();
+        if ($showResponse->successful()) {
+            $show = $showResponse->json();
 
-        if (!empty($show['language'])) {
-            $series->update([
-                'language' => $show['language'],
-            ]);
+            if (is_array($show) && !empty($show['language'])) {
+                $series->update([
+                    'language' => $show['language'],
+                ]);
+            }
         }
 
         // Récupération des saisons
@@ -30,9 +32,27 @@ class TvMazeService
             "https://api.tvmaze.com/shows/{$series->tvmaze_id}/seasons"
         );
 
+        if (!$response->successful()) {
+            return [
+                'new_seasons' => $newSeasons,
+                'new_episodes' => $newEpisodes,
+            ];
+        }
+
         $seasons = $response->json();
 
+        if (!is_array($seasons)) {
+            return [
+                'new_seasons' => $newSeasons,
+                'new_episodes' => $newEpisodes,
+            ];
+        }
+
         foreach ($seasons as $seasonData) {
+
+            if (!is_array($seasonData) || !isset($seasonData['id'])) {
+                continue;
+            }
 
             $season = $series->seasons()
                 ->where('tvmaze_id', $seasonData['id'])
@@ -44,20 +64,33 @@ class TvMazeService
 
                 $season = $series->seasons()->create([
                     'tvmaze_id' => $seasonData['id'],
-                    'season_number' => $seasonData['number'],
+                    'season_number' => $seasonData['number'] ?? null,
                 ]);
 
                 $newSeasons[] = $season;
                 $isNewSeason = true;
             }
 
+            // Récupération des épisodes
             $episodesResponse = Http::get(
                 "https://api.tvmaze.com/seasons/{$season->tvmaze_id}/episodes"
             );
 
+            if (!$episodesResponse->successful()) {
+                continue;
+            }
+
             $episodes = $episodesResponse->json();
 
+            if (!is_array($episodes)) {
+                continue;
+            }
+
             foreach ($episodes as $episodeData) {
+
+                if (!is_array($episodeData) || !isset($episodeData['id'])) {
+                    continue;
+                }
 
                 $episodeExists = $season->episodes()
                     ->where('tvmaze_id', $episodeData['id'])
@@ -67,8 +100,8 @@ class TvMazeService
 
                     $episode = $season->episodes()->create([
                         'tvmaze_id' => $episodeData['id'],
-                        'episode_number' => $episodeData['number'],
-                        'name' => $episodeData['name'],
+                        'episode_number' => $episodeData['number'] ?? null,
+                        'name' => $episodeData['name'] ?? 'TBA',
                         'air_date' => !empty($episodeData['airdate'])
                             ? $episodeData['airdate']
                             : null,
